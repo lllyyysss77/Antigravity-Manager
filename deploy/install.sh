@@ -15,8 +15,11 @@ REPO="lbjlaq/Antigravity-Manager"
 
 echo "[1/4] 安装依赖..."
 if command -v apt-get &>/dev/null; then
-    apt-get update -qq
-    apt-get install -y -qq xvfb libharfbuzz0b libwebkit2gtk-4.1-0 libgtk-3-0 wget curl jq
+    apt-get update -qq || echo "警告: apt-get update 部分失败，继续尝试安装..."
+    apt-get install -y -qq xvfb libharfbuzz0b libwebkit2gtk-4.1-0 libgtk-3-0 wget curl jq || {
+        echo "错误: 依赖安装失败，请检查镜像源或手动安装"
+        exit 1
+    }
 elif command -v dnf &>/dev/null; then
     dnf install -y -q xorg-x11-server-Xvfb harfbuzz webkit2gtk4.1 gtk3 wget curl jq
 elif command -v yum &>/dev/null; then
