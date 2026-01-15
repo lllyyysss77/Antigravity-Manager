@@ -399,15 +399,15 @@ export const ProxyMonitor: React.FC<ProxyMonitorProps> = ({ className }) => {
 
             {/* Pagination Controls */}
             <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-base-200 border-t border-gray-200 dark:border-base-300 text-xs">
-                <div className="flex items-center gap-3">
-                    <span className="text-gray-500">{t('monitor.pagination.per_page') || '每页'}</span>
+                <div className="flex items-center gap-2 whitespace-nowrap">
+                    <span className="text-gray-500">Per page</span>
                     <select
                         value={pageSize}
                         onChange={(e) => setPageSize(Number(e.target.value))}
-                        className="select select-xs select-bordered min-w-[70px]"
+                        className="select select-xs select-bordered w-16"
                     >
                         {PAGE_SIZE_OPTIONS.map(size => (
-                            <option key={size} value={size}>{size} 条</option>
+                            <option key={size} value={size}>{size}</option>
                         ))}
                     </select>
                 </div>
@@ -421,7 +421,7 @@ export const ProxyMonitor: React.FC<ProxyMonitorProps> = ({ className }) => {
                         <ChevronLeft size={14} />
                     </button>
                     <span className="text-gray-600 dark:text-gray-400 min-w-[80px] text-center">
-                        {currentPage} / {totalPages || 1} 页
+                        {currentPage} / {totalPages || 1}
                     </span>
                     <button
                         onClick={() => goToPage(currentPage + 1)}
@@ -433,7 +433,7 @@ export const ProxyMonitor: React.FC<ProxyMonitorProps> = ({ className }) => {
                 </div>
 
                 <div className="text-gray-500">
-                    共 {totalCount} 条记录
+                    Total {totalCount} records
                 </div>
             </div>
 
