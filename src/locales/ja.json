@@ -37,6 +37,7 @@
         "dashboard": "ダッシュボード",
         "accounts": "アカウント",
         "proxy": "APIプロキシ",
+        "call_records": "呼び出し記録",
         "settings": "設定",
         "theme_to_dark": "ダークモードに切り替え",
         "theme_to_light": "ライトモードに切り替え",
@@ -416,7 +417,7 @@
             },
             "request_timeout": "リクエストタイムアウト",
             "request_timeout_tooltip": "プロキシがアップストリームの応答を待機する最大時間（秒）。長い生成の場合は増やしてください。適用には再起動が必要です。",
-            "request_timeout_hint": "デフォルト 120秒、範囲 30-3600秒。適用には再起動が必要。",
+            "request_timeout_hint": "デフォルト 120秒、範囲 30-7200秒。適用には再起動が必要。",
             "enable_logging": "リクエストのログ記録を有効化",
             "enable_logging_hint": "デバッグ用に履歴を記録 (わずかなパフォーマンス低下あり)",
             "upstream_proxy": {

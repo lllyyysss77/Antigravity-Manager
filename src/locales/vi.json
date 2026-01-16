@@ -38,6 +38,7 @@
         "dashboard": "Tổng quan",
         "accounts": "Tài khoản",
         "proxy": "API Proxy",
+        "call_records": "Lịch sử Gọi",
         "settings": "Cài đặt",
         "theme_to_dark": "Chuyển sang Chế độ Tối",
         "theme_to_light": "Chuyển sang Chế độ Sáng",
@@ -458,7 +459,7 @@
             },
             "request_timeout": "Timeout Request",
             "request_timeout_tooltip": "Thời gian tối đa (giây) proxy chờ phản hồi từ upstream, bao gồm cả streaming. Tăng lên nếu tạo nội dung dài; cần khởi động lại để áp dụng.",
-            "request_timeout_hint": "Mặc định 120s, khoảng 30-3600s. Khởi động lại dịch vụ để áp dụng.",
+            "request_timeout_hint": "Mặc định 120s, khoảng 30-7200s. Khởi động lại dịch vụ để áp dụng.",
             "enable_logging": "Bật Ghi Log Request",
             "enable_logging_hint": "Ghi lại lịch sử để debug (Ảnh hưởng nhẹ hiệu năng)",
             "upstream_proxy": {

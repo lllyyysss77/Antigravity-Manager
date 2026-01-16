@@ -37,6 +37,7 @@
         "dashboard": "Kontrol Paneli",
         "accounts": "Hesaplar",
         "proxy": "API Proxy",
+        "call_records": "Çağrı Kayıtları",
         "settings": "Ayarlar",
         "theme_to_dark": "Karanlık Moda Geç",
         "theme_to_light": "Aydınlık Moda Geç",
@@ -426,7 +427,7 @@
             },
             "request_timeout": "İstek Zaman Aşımı",
             "request_timeout_tooltip": "Proxy'nin streaming dahil upstream yanıtı için beklediği maksimum süre (saniye). Uzun üretimler için artırın; uygulamak için yeniden başlatma gerekir.",
-            "request_timeout_hint": "Varsayılan 120s, aralık 30-3600s. Değişiklikleri uygulamak için hizmeti yeniden başlatın.",
+            "request_timeout_hint": "Varsayılan 120s, aralık 30-7200s. Değişiklikleri uygulamak için hizmeti yeniden başlatın.",
             "enable_logging": "İstek Loglamayı Etkinleştir",
             "enable_logging_hint": "Hata ayıklama için geçmişi kaydet (Küçük performans maliyeti)",
             "upstream_proxy": {

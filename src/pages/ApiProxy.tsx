@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import {
     Power,
@@ -19,7 +18,6 @@ import {
     ArrowRight,
     Sparkles,
     Code,
-    Activity,
     Check,
     X,
     Edit2
@@ -131,7 +129,6 @@ function CollapsibleCard({
 
 export default function ApiProxy() {
     const { t } = useTranslation();
-    const navigate = useNavigate();
 
     const { models } = useProxyModels();
 
@@ -650,15 +647,6 @@ print(response.text)`;
 
                             {/* 控制按钮 */}
                             <div className="flex items-center gap-2">
-                                {status.running && (
-                                    <button
-                                        onClick={() => navigate('/monitor')}
-                                        className="px-3 py-1 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 border bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-blue-600"
-                                    >
-                                        <Activity size={14} />
-                                        {t('monitor.open_monitor')}
-                                    </button>
-                                )}
                                 <button
                                     onClick={handleToggle}
                                     disabled={loading || !appConfig}
@@ -715,11 +703,11 @@ print(response.text)`;
                                         value={appConfig.proxy.request_timeout || 120}
                                         onChange={(e) => {
                                             const value = parseInt(e.target.value);
-                                            const timeout = Math.max(30, Math.min(3600, value));
+                                            const timeout = Math.max(30, Math.min(7200, value));
                                             updateProxyConfig({ request_timeout: timeout });
                                         }}
                                         min={30}
-                                        max={3600}
+                                        max={7200}
                                         disabled={status.running}
                                         className="w-full px-2.5 py-1.5 border border-gray-300 dark:border-base-200 rounded-lg bg-white dark:bg-base-200 text-xs text-gray-900 dark:text-base-content focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                                     />

@@ -38,6 +38,7 @@
         "dashboard": "儀表板",
         "accounts": "帳號管理",
         "proxy": "API 反向代理",
+        "call_records": "呼叫記錄",
         "settings": "設定",
         "theme_to_dark": "切換到深色模式",
         "theme_to_light": "切換到淺色模式",
@@ -460,7 +461,7 @@
             },
             "request_timeout": "請求逾時",
             "request_timeout_tooltip": "代理等待上游響應的最大時間（秒），包含流式輸出。長文字/長推理可適當調大；修改後需重啟生效。",
-            "request_timeout_hint": "預設 120 秒，範圍 30-3600 秒。修改後需重啟服務生效。",
+            "request_timeout_hint": "預設 120 秒，範圍 30-7200 秒。修改後需重啟服務生效。",
             "enable_logging": "啟用請求紀錄",
             "enable_logging_hint": "記錄歷史紀錄以便除錯 (微小效能損耗)",
             "upstream_proxy": {
