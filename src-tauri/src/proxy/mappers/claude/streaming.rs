@@ -41,7 +41,7 @@ fn remap_function_call_args(tool_name: &str, args: &mut serde_json::Value) {
     if let Some(obj) = args.as_object_mut() {
         // [IMPROVED] Case-insensitive matching for tool names
         match tool_name.to_lowercase().as_str() {
-            "grep" => {
+            "grep" | "search" | "search_code_definitions" | "search_code_snippets" => {
                 // [FIX #546] Gemini hallucination: maps parameter description to "description" field
                 if let Some(desc) = obj.remove("description") {
                     if !obj.contains_key("pattern") {
@@ -111,6 +111,18 @@ fn remap_function_call_args(tool_name: &str, args: &mut serde_json::Value) {
                     if !obj.contains_key("lineNumbers") {
                         obj.insert("lineNumbers".to_string(), n);
                         tracing::debug!("[Streaming] Remapped Grep: -n → lineNumbers");
+                    }
+                }
+
+                // [NEW] Glob-to-Inclusion Migration: if pattern looks like a glob, move to inclusion
+                if let Some(pattern) = obj.get("pattern").and_then(|v| v.as_str()) {
+                    if pattern.contains('*') || pattern.contains('?') || pattern.contains("**") {
+                        if !obj.contains_key("include") {
+                            let glob = pattern.to_string();
+                            obj.insert("include".to_string(), json!(glob));
+                            obj.insert("pattern".to_string(), json!(""));
+                            tracing::debug!("[Streaming] Migrated glob pattern to inclusion: '{}'", glob);
+                        }
                     }
                 }
 
@@ -954,11 +966,17 @@ impl<'a> PartProcessor<'a> {
             )
         });
 
+        let mut tool_name = fc.name.clone();
+        if tool_name.to_lowercase() == "search" {
+            tool_name = "grep".to_string();
+            tracing::debug!("[Streaming] Normalizing tool name: Search → grep");
+        }
+
         // 1. 发送 content_block_start (input 为空对象)
         let mut tool_use = json!({
             "type": "tool_use",
             "id": tool_id,
-            "name": fc.name,
+            "name": tool_name,
             "input": {} // 必须为空，参数通过 delta 发送
         });
 
@@ -985,7 +1003,12 @@ impl<'a> PartProcessor<'a> {
         // [FIX] Remap args before serialization for Gemini → Claude compatibility
         if let Some(args) = &fc.args {
             let mut remapped_args = args.clone();
-            remap_function_call_args(&fc.name, &mut remapped_args);
+            
+            let mut tool_name_lower = fc.name.to_lowercase();
+            if tool_name_lower == "search" {
+                tool_name_lower = "grep".to_string();
+            }
+            remap_function_call_args(&tool_name_lower, &mut remapped_args);
             let json_str =
                 serde_json::to_string(&remapped_args).unwrap_or_else(|_| "{}".to_string());
             chunks.push(

@@ -188,16 +188,20 @@ print(response.choices[0].message.content)
 
 *   **Changelog**:
     *   **v3.3.39 (2026-01-17)**:
-        - **Fix Claude Code File Search Error (Issue #785)**:
-            - Synchronized tool parameter remapping between streaming and non-streaming responses, resolving search failures caused by inconsistent `grep` arguments.
-            - Enhanced `grep` parameter handling with support for `-n` (line numbers), `ignore_case`, and automatic boolean coercion.
+        - **Deep Proxy Optimizations (Gemini Stability Boost)**:
+            - **Schema Purifier Upgrade**: Supported `allOf` merging, intelligent union type selection, automatic Nullable filtering, and empty object parameter backfill, completely resolving 400 errors caused by complex tool definitions.
+            - **Search Tool Self-healing**: Implemented automatic remapping from `Search` to `grep` and introduced **Glob-to-Include Migration** (automatically moving Glob patterns like `**/*.rs` to the inclusion parameter), resolving Claude Code `Error searching files` errors.
+            - **Parameter Alias Completion**: Unified parameter mapping logic for `search_code_definitions` and other related tools, and enforced boolean type conversion.
+            - **Shell Call Robustness**: Enforced `local_shell_call` command parameter to return as an array, enhancing compatibility with Google API.
+            - **Dynamic Token Constraints**: Automatically adjusted `maxOutputTokens` based on `thinking_budget` to satisfy strict API constraints; streamlined Stop Sequences to improve streaming output quality.
         - **Enhanced Thinking Mode Stability**:
             - Introduced cross-model family signature validation to automatically downgrade incompatible thinking signatures, preventing 400 Bad Request errors.
             - Improved "Session Healing" logic to automatically recover interrupted tool loops and ensure compliance with strict Google/Vertex AI structural requirements.
-        - **Gemini Parameter Hallucination Fix**:
-            - Implemented generic parameter remapping to automatically fix common model hallucinations like using `paths` array instead of `path` string.
         - **High Availability Improvements**:
             - Optimized automatic Endpoint Fallback logic for smoother transitions to backup API endpoints during 429 or 5xx errors.
+        - **Fix macOS "Too many open files" Error (Issue #784)**:
+            - Implemented a global shared HTTP client pool to significantly reduce Socket handle consumption.
+            - Automatically increase the file descriptor limit (RLIMIT_NOFILE) to 4096 on macOS for enhanced high-concurrency stability.
     *   **v3.3.38 (2026-01-17)**:
         - **Thinking Signature Deep Fix & Session Healing (Core Fix)**:
             - **Robust Retry Logic**: Fixed the retry counting logic to ensure single-account users can still trigger internal retries for signature errors, improving auto-recovery rates.

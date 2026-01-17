@@ -206,16 +206,20 @@ print(response.choices[0].message.content)
 
 *   **版本演进 (Changelog)**:
     *   **v3.3.39 (2026-01-17)**:
-        - **修复 Claude Code 文件搜索错误 (Issue #785)**：
-            - 同步流式与非流式响应的工具参数重映射逻辑，解决 `grep` 工具在流式模式下参数不一致导致的搜索失败。
-            - 增强 `grep` 参数处理，支持 `-n` (行号)、`ignore_case` (忽略大小写) 及布尔值自动强制转换。
+        - **代理深度优化 (Gemini 稳定性增强)**：
+            - **Schema 净化器升级**：支持 `allOf` 合并、智能联合类型选择、Nullable 自动过滤及空对象参数补全，彻底解决复杂工具定义导致的 400 错误。
+            - **搜索工具自愈**：实现 `Search` 到 `grep` 的自动重映射，并引入 **Glob-to-Include 迁移**（自动将 `**/*.rs` 等 Glob 模式移至包含参数），解决 Claude Code `Error searching files` 报错。
+            - **参数别名补全**：统一 `search_code_definitions` 等相关工具的参数映射逻辑，并强制执行布尔值类型转换。
+            - **Shell 调用加固**：强制 `local_shell_call` 的 `command` 参数返回数组，增强与 Google API 的兼容性。
+            - **动态 Token 约束**：自动根据 `thinking_budget` 调整 `maxOutputTokens`，确保满足 API 强约束；精简停止序列 (Stop Sequences) 以提升流式输出质量。
         - **Thinking 模式稳定性大幅提升**：
             - 引入跨模型家族签名校验，自动识别并降级不兼容的思维链签名，防止 400 Bad Request 错误。
             - 增强“会话自愈 (Session Healing)”逻辑，支持自动补全被中断的工具循环，确保满足 Google/Vertex AI 的严苛结构要求。
-        - **Gemini 参数幻觉修复**：
-            - 实现泛用参数重映射逻辑，自动修复模型将 `path` 误标记为 `paths` 数组的常见问题。
         - **高可用性增强**：
             - 优化自动端点降级 (Endpoint Fallback) 逻辑，在 429 或 5xx 错误时更平滑地切换至备用 API 端点。
+        - **修复 macOS "Too many open files" 错误 (Issue #784)**：
+            - 引入全局共享 HTTP 客户端连接池，大幅减少 Socket 句柄占用。
+            - 针对 macOS 系统自动提升文件描述符限制 (RLIMIT_NOFILE) 至 4096，增强高并发稳定性。
     *   **v3.3.38 (2026-01-17)**:
         - **CLI 同步增强与探测修复 (Fix CLI-Sync Detection)**:
             - **探测路径扩展**: 优化了二进制检测逻辑。新增对 `~/.local/bin` (curl 安装常用路径)、`~/.npm-global/bin` 以及 `~/bin` 的扫描。
