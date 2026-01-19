@@ -51,7 +51,7 @@ pub fn get_storage_path() -> Result<PathBuf, String> {
     // 3) Standard installation location
     #[cfg(target_os = "macos")]
     {
-        let home = dirs::home_dir().ok_or("无法获取 Home 目录")?;
+        let home = dirs::home_dir().ok_or("failed_to_get_home_dir")?;
         let path =
             home.join("Library/Application Support/Antigravity/User/globalStorage/storage.json");
         if path.exists() {
@@ -71,7 +71,7 @@ pub fn get_storage_path() -> Result<PathBuf, String> {
 
     #[cfg(target_os = "linux")]
     {
-        let home = dirs::home_dir().ok_or("无法获取 Home 目录")?;
+        let home = dirs::home_dir().ok_or("failed_to_get_home_dir")?;
         let path = home.join(".config/Antigravity/User/globalStorage/storage.json");
         if path.exists() {
             return Ok(path);
@@ -99,11 +99,11 @@ pub fn get_state_db_path() -> Result<PathBuf, String> {
 #[allow(dead_code)]
 pub fn backup_storage(storage_path: &Path) -> Result<PathBuf, String> {
     if !storage_path.exists() {
-        return Err(format!("storage.json 不存在: {:?}", storage_path));
+        return Err(format!("storage_json_missing: {:?}", storage_path));
     }
     let dir = storage_path
         .parent()
-        .ok_or_else(|| "无法获取 storage.json 的父目录".to_string())?;
+        .ok_or_else(|| "failed_to_get_storage_parent_dir".to_string())?;
     let backup_path = dir.join(format!(
         "storage.json.backup_{}",
         Local::now().format("%Y%m%d_%H%M%S")
@@ -116,11 +116,11 @@ pub fn backup_storage(storage_path: &Path) -> Result<PathBuf, String> {
 #[allow(dead_code)]
 pub fn read_profile(storage_path: &Path) -> Result<DeviceProfile, String> {
     let content =
-        fs::read_to_string(storage_path).map_err(|e| format!("读取 storage.json 失败: {}", e))?;
+        fs::read_to_string(storage_path).map_err(|e| format!("read_failed: {}", e))?;
     let json: Value =
-        serde_json::from_str(&content).map_err(|e| format!("解析 storage.json 失败: {}", e))?;
+        serde_json::from_str(&content).map_err(|e| format!("parse_failed: {}", e))?;
 
-    // 支持嵌套 telemetry 或扁平 telemetry.xxx
+    // Supports nested telemetry or flat telemetry.xxx
     let get_field = |key: &str| -> Option<String> {
         if let Some(obj) = json.get("telemetry").and_then(|v| v.as_object()) {
             if let Some(v) = obj.get(key).and_then(|v| v.as_str()) {
@@ -153,9 +153,9 @@ pub fn write_profile(storage_path: &Path, profile: &DeviceProfile) -> Result<(),
     let content =
         fs::read_to_string(storage_path).map_err(|e| format!("read_failed: {}", e))?;
     let mut json: Value =
-        serde_json::from_str(&content).map_err(|e| format!("解析 storage.json 失败: {}", e))?;
+        serde_json::from_str(&content).map_err(|e| format!("parse_failed: {}", e))?;
 
-    // 确保 telemetry 是对象
+    // Ensure telemetry is an object
     if !json.get("telemetry").map_or(false, |v| v.is_object()) {
         if json.as_object_mut().is_some() {
             json["telemetry"] = serde_json::json!({});
@@ -182,7 +182,7 @@ pub fn write_profile(storage_path: &Path, profile: &DeviceProfile) -> Result<(),
         return Err("telemetry_not_object".to_string());
     }
 
-    // 同时写入扁平键，兼容旧格式
+    // Write flat keys as well, compatible with old formats
     if let Some(map) = json.as_object_mut() {
         map.insert(
             "telemetry.machineId".to_string(),
@@ -202,7 +202,7 @@ pub fn write_profile(storage_path: &Path, profile: &DeviceProfile) -> Result<(),
         );
     }
 
-    // 同步 storage.serviceMachineId（与 devDeviceId 一致），放在根级别
+    // Sync storage.serviceMachineId (match with devDeviceId), place at root level
     if let Some(map) = json.as_object_mut() {
         map.insert(
             "storage.serviceMachineId".to_string(),
@@ -215,7 +215,7 @@ pub fn write_profile(storage_path: &Path, profile: &DeviceProfile) -> Result<(),
     fs::write(storage_path, updated).map_err(|e| format!("write_failed: {}", e))?;
     logger::log_info("device_profile_written");
 
-    // 同步 state.vscdb 的 ItemTable.storage.serviceMachineId
+    // Sync ItemTable.storage.serviceMachineId in state.vscdb
     let _ = sync_state_service_machine_id_value(&profile.dev_device_id);
     Ok(())
 }
@@ -347,7 +347,7 @@ pub fn save_global_original(profile: &DeviceProfile) -> Result<(), String> {
 pub fn list_backups(storage_path: &Path) -> Result<Vec<PathBuf>, String> {
     let dir = storage_path
         .parent()
-        .ok_or_else(|| "无法获取 storage.json 的父目录".to_string())?;
+        .ok_or_else(|| "failed_to_get_storage_parent_dir".to_string())?;
     let mut backups = Vec::new();
     if let Ok(entries) = fs::read_dir(dir) {
         for entry in entries.flatten() {
