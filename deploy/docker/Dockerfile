@@ -66,6 +66,6 @@ USER antigravity
 WORKDIR /home/antigravity
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD pgrep -x Xtigervnc > /dev/null && pgrep -f websockify > /dev/null || exit 1
+    CMD pgrep -x Xtigervnc > /dev/null && pgrep -f websockify > /dev/null && pgrep -f antigravity_tools > /dev/null || exit 1
 
 CMD ["/home/antigravity/start.sh"]
