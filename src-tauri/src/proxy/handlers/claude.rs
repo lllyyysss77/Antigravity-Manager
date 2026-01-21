@@ -19,7 +19,8 @@ use crate::proxy::mappers::claude::{
     models::{Message, MessageContent},
 };
 use crate::proxy::server::AppState;
-use crate::proxy::mappers::context_manager::ContextManager;
+use crate::proxy::mappers::context_manager::{ContextManager, PurificationStrategy};
+use crate::proxy::mappers::estimation_calibrator::get_calibrator;
 use axum::http::HeaderMap;
 use std::sync::{atomic::Ordering, Arc};
 
@@ -581,10 +582,12 @@ pub async fn handle_messages(
             }
         }
 
-        // ===== [3-Layer Progressive Compression] Context Management (Issue #902 & #867) =====
+<<<<<<< HEAD
+        // ===== [3-Layer Progressive Compression + Calibrated Estimation] Context Management =====
+        // [ENHANCED] 整合 3.3.47 的三层压缩框架 + PR #925 的动态校准机制
         // Layer 1 (60%): Tool message trimming - Does NOT break cache
         // Layer 2 (75%): Thinking purification - Breaks cache but preserves signatures
-        // Layer 3 (90%): Fork conversation + XML summary - Ultimate optimization (TODO)
+        // Layer 3 (90%): Fork conversation + XML summary - Ultimate optimization
         let mut is_purified = false;
         let mut compression_applied = false;
         
@@ -596,9 +599,16 @@ pub async fn handle_messages(
                 2_000_000
             };
 
-            // 2. Estimate current usage
-            let mut estimated_usage = ContextManager::estimate_token_usage(&request_with_mapped);
+            // 2. [ENHANCED] 使用校准器提高估算准确度 (PR #925)
+            let raw_estimated = ContextManager::estimate_token_usage(&request_with_mapped);
+            let calibrator = get_calibrator();
+            let mut estimated_usage = calibrator.calibrate(raw_estimated);
             let mut usage_ratio = estimated_usage as f32 / context_limit as f32;
+            
+            info!(
+                "[{}] [ContextManager] Context pressure: {:.1}% (raw: {}, calibrated: {} / {}), Calibration factor: {:.2}",
+                trace_id, usage_ratio * 100.0, raw_estimated, estimated_usage, context_limit, calibrator.get_factor()
+            );
 
             // ===== Layer 1: Tool Message Trimming (60% pressure) =====
             // Borrowed from Practical-Guide-to-Context-Engineering
@@ -611,8 +621,9 @@ pub async fn handle_messages(
                     );
                     compression_applied = true;
                     
-                    // Re-estimate after trimming
-                    let new_usage = ContextManager::estimate_token_usage(&request_with_mapped);
+                    // Re-estimate after trimming (with calibration)
+                    let new_raw = ContextManager::estimate_token_usage(&request_with_mapped);
+                    let new_usage = calibrator.calibrate(new_raw);
                     let new_ratio = new_usage as f32 / context_limit as f32;
                     
                     info!(
@@ -651,7 +662,8 @@ pub async fn handle_messages(
                     is_purified = true; // Still breaks cache, but preserves signatures
                     compression_applied = true;
                     
-                    let new_usage = ContextManager::estimate_token_usage(&request_with_mapped);
+                    let new_raw = ContextManager::estimate_token_usage(&request_with_mapped);
+                    let new_usage = calibrator.calibrate(new_raw);
                     let new_ratio = new_usage as f32 / context_limit as f32;
                     
                     info!(
@@ -689,8 +701,9 @@ pub async fn handle_messages(
                         compression_applied = true;
                         is_purified = false; // Fork doesn't break cache!
                         
-                        // Re-estimate after fork
-                        let new_usage = ContextManager::estimate_token_usage(&request_with_mapped);
+                        // Re-estimate after fork (with calibration)
+                        let new_raw = ContextManager::estimate_token_usage(&request_with_mapped);
+                        let new_usage = calibrator.calibrate(new_raw);
                         let new_ratio = new_usage as f32 / context_limit as f32;
                         
                         info!(
@@ -723,6 +736,14 @@ pub async fn handle_messages(
                 }
             }
         }
+
+        // [FIX] Estimate AFTER purification to get accurate token count for calibrator learning
+        // Only estimate for calibrator when content was not purified, to avoid skewed learning
+        let raw_estimated = if !is_purified {
+            ContextManager::estimate_token_usage(&request_with_mapped)
+        } else {
+            0 // Don't record calibration data when content was purified
+        };
 
         request_with_mapped.model = mapped_model;
 
@@ -799,12 +820,13 @@ pub async fn handle_messages(
                 // We must pre-read until we find a MEANINGFUL content block (like message_start).
                 // If we only get heartbeats (ping) and then the stream dies, we should rotate account.
                 let mut claude_stream = create_claude_sse_stream(
-                    gemini_stream, 
-                    trace_id.clone(), 
+                    gemini_stream,
+                    trace_id.clone(),
                     email.clone(),
                     Some(session_id_str.clone()),
                     scaling_enabled,
-                    context_limit
+                    context_limit,
+                    Some(raw_estimated) // [FIX] Pass estimated tokens for calibrator learning
                 );
 
                 let mut first_data_chunk = None;
