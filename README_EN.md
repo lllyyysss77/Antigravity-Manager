@@ -215,6 +215,11 @@ print(response.choices[0].message.content)
     *   **v3.3.50 (2026-01-23)**:
         -   **[Core Fix] Windows Startup Argument Support (PR #973)**:
             -   **Fix**: Resolved an issue where startup arguments (e.g., tunneling configurations) were not correctly parsed and applied on the Windows platform. Thanks to @Mag1cFall for the contribution.
+        -   **[Core Fix] Enhanced Claude Signature Validation (PR #1009)**:
+            -   **Optimization**: Strengthened the signature validation logic for Claude models, fixing 400 errors in long conversations or complex tool-calling scenarios.
+            -   **Compatibility**: Introduced minimum signature length checks and a trust-on-length strategy for unknown signatures, significantly improving the stability of JSON tool calls.
+        -   **[i18n] Vietnamese Translation Optimization (PR #1017)**:
+            -   **Refinement**: Optimized Vietnamese translations for the About page and other UI elements for better clarity and conciseness.
     *   **v3.3.49 (2026-01-22)**:
         -   **[Core Fix] Thinking Interruption & 0-Token Defense (Fix Thinking Interruption)**:
             -   **Issue**: Addressed an issue where Gemini models would unexpectedly terminate the stream after outputting "Thinking" content, causing Claude clients to receive 0-token responses and deadlock with errors.
